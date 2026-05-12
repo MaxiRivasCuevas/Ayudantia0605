@@ -1,0 +1,55 @@
+name: Docker Publish to GHCR
+
+# 1. Configuración del disparador (Trigger)
+on:
+  push:
+    branches: [ "main" ] # Se activa solo cuando el código llega a main
+
+# 2. Definición de variables globales
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    # 3. Permisos necesarios para escribir en el registro
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 4. Iniciar sesión en el registro (GHCR)
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5. Extraer metadatos (etiquetas y etiquetas de versión)
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      # 6. Construir y subir la imagen
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Optimización: cache para acelerar futuras construcciones
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
