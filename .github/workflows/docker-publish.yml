@@ -24,6 +24,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --- PASO DE DIAGNÓSTICO ---
+      - name: List files in root
+        run: ls -R
+      # ---------------------------
+
       # --- ESTA ES LA PIEZA QUE FALTA ---
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
