@@ -1,0 +1,65 @@
+1. El archivo maestro: .gitlab-ci.yml
+En GitLab, el archivo no va dentro de carpetas ocultas. Debe ir directamente en la raíz del proyecto (al lado de tu pom.xml y tu Dockerfile).
+
+Nombre exacto: .gitlab-ci.yml (fíjate en el punto inicial).
+
+2. Configuración del Pipeline (YAML)
+Copia este código. Está diseñado para usar Docker-in-Docker (dind), que es el estándar de GitLab para construir imágenes dentro de sus corredores (Runners).
+# Definimos las etapas del pipeline
+stages:
+  - build
+  - publish
+
+# Variable global para el nombre de la imagen
+variables:
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE:latest
+
+# Etapa 1: Compilar el JAR (Opcional si tu Dockerfile ya lo hace)
+# Si usas el Dockerfile multi-stage que vimos antes, puedes saltar esto
+# y dejar que Docker haga todo en la siguiente etapa.
+
+# Etapa 2: Construir y subir a GitLab Container Registry
+publish_image:
+  stage: publish
+  image: docker:24.0.5 # Imagen base con Docker instalado
+  services:
+    - docker:24.0.5-dind # Servicio para permitir Docker dentro de Docker
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    # Login automático usando variables predefinidas de GitLab
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # 1. Construir la imagen usando el Dockerfile de la raíz
+    - docker build -t $DOCKER_IMAGE_NAME .
+    # 2. Subirla al registro de GitLab
+    - docker push $DOCKER_IMAGE_NAME
+  only:
+    - main # Solo se ejecuta cuando hay cambios en la rama main
+
+    3. Diferencias clave que debes notar
+Variables predefinidas
+A diferencia de GitHub, donde usas secrets.GITHUB_TOKEN, GitLab te da variables ya configuradas sin que hagas nada:
+
+$CI_REGISTRY: La URL del registro de GitLab de tu proyecto.
+
+$CI_REGISTRY_USER: Tu usuario (o el del token del runner).
+
+$CI_REGISTRY_PASSWORD: El token de acceso temporal.
+
+El servicio dind
+En GitLab, para ejecutar comandos de Docker (docker build, docker push), necesitas declarar el servicio docker:dind. Es como pedirle al servidor permiso para crear "contenedores dentro del contenedor".
+
+4. Paso a paso para la ejecución
+Asegura tu Dockerfile: Verifica que el archivo Dockerfile esté en la raíz y tenga el contenido correcto (el que no pesa 2 bytes).
+
+Sube el archivo:
+git add .gitlab-ci.yml
+git commit -m "ci: agregar pipeline para GitLab"
+git push origin main
+5. Verificación de la imagen
+Cuando el pipeline termine (verás el check verde), la imagen no aparecerá en "Packages" de GitHub, sino en:
+
+Deploy > Container Registry dentro de tu proyecto en GitLab.
+
+Tip de experto: Si tu empresa usa Runners propios y el pipeline falla con un error de "Docker command not found", asegúrate de que el Runner tenga activado el modo privileged, requisito indispensable para usar dind.
