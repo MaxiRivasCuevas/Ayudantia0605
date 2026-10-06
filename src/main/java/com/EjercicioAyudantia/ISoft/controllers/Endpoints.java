@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -20,6 +21,14 @@ public class Endpoints {
     @PostMapping("/tasks")
     public String CrearTareaController(@RequestBody String titulo, @RequestBody String prioridad,
             @RequestBody String fechaLimite) {
-        return ResponseEntity.ok(TareaService.CrearTarea(titulo, prioridad, fechaLimite));
+        return ResponseEntity.ok(TareaService.CrearTarea(titulo, prioridad, fechaLimite)).toString();
+    }
+
+    @PatchMapping("/tasks/{id}/complete")
+    public String CompleteTask(@PathVariable int id) {
+        if (TareaService.CompletarTarea(id)) {
+            return ResponseEntity.ok().toString();
+        }
+        return ResponseEntity.notFound().toString();
     }
 }

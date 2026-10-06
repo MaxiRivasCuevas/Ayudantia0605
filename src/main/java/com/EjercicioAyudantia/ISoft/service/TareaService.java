@@ -19,4 +19,13 @@ public class TareaService {
         tareas.add(Tarea);
         return Tarea;
     }
+
+    public boolean CompletarTarea(int id) {
+        if (id < 0 || id >= tareas.size()) {
+            return false;
+        }
+        Tarea tarea = tareas.get(id);
+        tarea.setCompletada(true);
+        return true;
+    }
 }
