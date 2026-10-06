@@ -10,4 +10,7 @@ public class Tarea {
     private String fechaLimite; 
     private boolean completada;
 
+    public Tarea(){
+        this.id ++;
+    }
 }
