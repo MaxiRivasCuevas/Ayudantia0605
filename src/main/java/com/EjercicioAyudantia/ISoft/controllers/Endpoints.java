@@ -22,10 +22,4 @@ public class Endpoints {
             @RequestBody String fechaLimite) {
         return ResponseEntity.ok(TareaService.CrearTarea(titulo, prioridad, fechaLimite));
     }
-
-    @PatchMapping("/tasks/{id}/complete")
-    public String CompletarTareaController(@PathV) {
-        return ResponseEntity.ok(TareaService.CompletarTarea(id));
-    }
-
 }
