@@ -2,8 +2,11 @@ package com.EjercicioAyudantia.ISoft.controllers;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.EjercicioAyudantia.ISoft.model.Tarea;
@@ -19,6 +22,12 @@ public class Endpoint {
         this.tareaService = tareaService;
     }
 
+    @PostMapping("/tasks")
+    public ResponseEntity<Tarea> CrearTareaController(@RequestBody String titulo, @RequestBody String prioridad,
+            @RequestBody String fechaLimite) {
+        return ResponseEntity.ok(tareaService.crearTarea(titulo, prioridad, fechaLimite));
+    }
+    
     @GetMapping("/tasks")
     public List<Tarea>tareasPriorizadas(
         @RequestParam(required = false) String prioridad,
